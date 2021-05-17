@@ -9,8 +9,10 @@ class MoviesController < ApplicationController
   end
 
   def index
+    restore_session
     @all_ratings = Movie.all_ratings
     @ratings_to_show = params[:ratings]==nil ? [] : params[:ratings]
+    save_session
     @movies = Movie.with_ratings(params[:ratings]).order(order_status)
   end
 
@@ -19,6 +21,20 @@ class MoviesController < ApplicationController
       "hilite bg-warning"
     else
       ""
+    end
+  end
+
+  def restore_session
+    if !params.has_key?(:home) && ((session.has_key?(:order) && !params.has_key?(:order)) || (session.has_key?(:ratings) && !params.has_key?(:ratings)))
+      redirect_to movies_path(:ratings => session[:ratings], :order => session[:order], :home => '1') #add additional params here
+    end
+  end
+
+  def save_session
+    params.each do |key, value|
+      if key != "home"
+        session[key.to_sym] = value
+      end
     end
   end
 
